@@ -1,0 +1,150 @@
+{
+  "intents": [
+    {
+      "name": "AMAZON.CancelIntent",
+      "samples": []
+    },
+    {
+      "name": "AMAZON.HelpIntent",
+      "samples": []
+    },
+    {
+      "name": "AMAZON.StopIntent",
+      "samples": []
+    },
+    {
+      "name": "guestnetOFF",
+      "samples": [
+        "guest network OFF",
+        "guest wifi off",
+        "disable guest network",
+        "disable guest wifi"
+      ],
+      "slots": []
+    },
+    {
+      "name": "guestnetON",
+      "samples": [
+        "guest network on",
+        "guest wifi on",
+        "enable guest wifi",
+        "enable guest network"
+      ],
+      "slots": []
+    },
+    {
+      "name": "guestnetPASSWORD",
+      "samples": [
+        "get me Guest password",
+        "Guest net password",
+        "what is the guest network password",
+        "password for Guest Network",
+        "password for Guest WiFi"
+      ],
+      "slots": []
+    },
+    {
+      "name": "guestnetREKEY",
+      "samples": [
+        "generate new password ",
+        "Guest network NEW password",
+        "Create new Password",
+        "Brand new day"
+      ],
+      "slots": []
+    },
+    {
+      "name": "guestnetSTATUS",
+      "samples": [
+        "guest network status",
+        "guest wifi status"
+      ],
+      "slots": []
+    }
+  ],
+  "types": [
+    {
+      "name": "endis",
+      "values": [
+        {
+          "id": null,
+          "name": {
+            "value": "enable",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "disable",
+            "synonyms": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Name",
+      "values": [
+        {
+          "id": null,
+          "name": {
+            "value": "All",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "HomeNet",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "Guest",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "WorkNet",
+            "synonyms": []
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "onoff",
+            "synonyms": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "onoff",
+      "values": [
+        {
+          "id": null,
+          "name": {
+            "value": "ON",
+            "synonyms": [
+              "turn on"
+            ]
+          }
+        },
+        {
+          "id": null,
+          "name": {
+            "value": "OFF",
+            "synonyms": [
+              "turn off"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
+
