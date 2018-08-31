@@ -14,28 +14,21 @@ import json
 import re
 import os
 
-MERAKI_API_KEY   = os.environ['MERAKI_API_KEY']
-MERAKI_ORG_NAME  = os.environ['MERAKI_ORG_NAME']
-MERAKI_NET_NAME  = os.environ['MERAKI_NET_NAME']
-MERAKI_SSID_NAME = os.environ['MERAKI_SSID_NAME']
-
-meraki = MerakiAPI(MERAKI_API_KEY)
-
-def get_org_by_name(name):
+def get_org_by_name(meraki, name):
     orgs = meraki.organizations().index().json()
     for item in orgs:
         if item['name'] == name:
             return item
     raise ValueError("not found: name={}".format(name))
 
-def get_network_by_name(org_id, name):
+def get_network_by_name(meraki, org_id, name):
     nets = meraki.organizations(org_id).networks().index().json()
     for item in nets:
         if item['name'] == name:
             return item
     raise ValueError("not found: org_id={} name={}".format(org_id, name))
 
-def get_ssid_by_name(org_id, net_id, name):
+def get_ssid_by_name(meraki, org_id, net_id, name):
     ssids = meraki.organizations(org_id).networks(net_id).ssids().index().json()
     for item in ssids:
         if item['name'] == name:
@@ -206,7 +199,7 @@ def on_launch(launch_request, session):
     return get_welcome_response()
 
 
-def on_intent(intent_request, session):
+def on_intent(guest_network, intent_request, session):
     """ Called when the user specifies an intent for this skill """
 
     print("on_intent requestId=" + intent_request['requestId'] +
@@ -215,8 +208,6 @@ def on_intent(intent_request, session):
     intent = intent_request['intent']
     intent_name = intent_request['intent']['name']
     print(intent_name)
-
-    guest_network = GuestNetwork(org_id=ORG['id'], net_id=NET['id'], ssid=SSID)
     # Dispatch to your skill's intent handlers
     if intent_name == "guestnetON":
         return guest_network.enable()
@@ -237,7 +228,8 @@ def on_session_ended(session_ended_request, session):
     # add cleanup logic here
 
 class GuestNetwork:
-    def __init__(self, org_id, net_id, ssid):
+    def __init__(self, meraki, org_id, net_id, ssid):
+        self.meraki             = meraki
         self.org_id             = org_id
         self.net_id             = net_id
         self.ssid               = ssid
@@ -246,7 +238,7 @@ class GuestNetwork:
         session_attributes = {}
         card_title = "Guest Network On"
         reprompt_text = ""
-        response = meraki.organizations(self.org_id).networks(self.net_id).ssids(self.ssid['number']).update({"enabled": True})
+        response = self.meraki.organizations(self.org_id).networks(self.net_id).ssids(self.ssid['number']).update({"enabled": True})
         if response.status_code == 200:
             speech_output = "Success ! Enabling guest wi-fi"
         else:
@@ -258,7 +250,7 @@ class GuestNetwork:
         session_attributes = {}
         card_title = "Guest Network Off"
         reprompt_text = ""
-        response = meraki.organizations(self.org_id).networks(self.net_id).ssids(self.ssid['number']).update({"enabled": False})
+        response = self.meraki.organizations(self.org_id).networks(self.net_id).ssids(self.ssid['number']).update({"enabled": False})
         if response.status_code == 200:
             speech_output = "Success ! Disabled guest wi-fi"
         else:
@@ -277,13 +269,19 @@ class GuestNetwork:
 
 
 
-ORG  = get_org_by_name(MERAKI_ORG_NAME)
-NET  = get_network_by_name(ORG['id'], MERAKI_NET_NAME)
-SSID = get_ssid_by_name(ORG['id'], NET['id'], MERAKI_SSID_NAME) 
-
 # --------------- Main handler ------------------
 
 def lambda_handler(event, context):
+    MERAKI_API_KEY   = os.environ['MERAKI_API_KEY']
+    MERAKI_ORG_NAME  = os.environ['MERAKI_ORG_NAME']
+    MERAKI_NET_NAME  = os.environ['MERAKI_NET_NAME']
+    MERAKI_SSID_NAME = os.environ['MERAKI_SSID_NAME']
+
+    meraki           = MerakiAPI(MERAKI_API_KEY)
+    org              = get_org_by_name(meraki, MERAKI_ORG_NAME)
+    net              = get_network_by_name(meraki, org['id'], MERAKI_NET_NAME)
+    ssid             = get_ssid_by_name(meraki, org['id'], net['id'], MERAKI_SSID_NAME)
+    guest_network    = GuestNetwork(meraki, org['id'], net['id'], ssid)
     """ Route the incoming request based on type (LaunchRequest, IntentRequest,
     etc.) The JSON body of the request is provided in the event parameter.
     """
@@ -306,6 +304,6 @@ def lambda_handler(event, context):
     if event['request']['type'] == "LaunchRequest":
         return on_launch(event['request'], event['session'])
     elif event['request']['type'] == "IntentRequest":
-        return on_intent(event['request'], event['session'])
+        return on_intent(guest_network, event['request'], event['session'])
     elif event['request']['type'] == "SessionEndedRequest":
         return on_session_ended(event['request'], event['session'])
